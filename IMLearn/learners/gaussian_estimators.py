@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import numpy as np
 from numpy.linalg import inv, det, slogdet
 
@@ -7,6 +8,7 @@ class UnivariateGaussian:
     """
     Class for univariate Gaussian Distribution Estimator
     """
+
     def __init__(self, biased_var: bool = False) -> UnivariateGaussian:
         """
         Estimator for univariate Gaussian mean and variance parameters
@@ -36,7 +38,6 @@ class UnivariateGaussian:
     def fit(self, X: np.ndarray) -> UnivariateGaussian:
         """
         Estimate Gaussian expectation and variance from given samples
-
         Parameters
         ----------
         X: ndarray of shape (n_samples, )
@@ -51,8 +52,11 @@ class UnivariateGaussian:
         Sets `self.mu_`, `self.var_` attributes according to calculated estimation (where
         estimator is either biased or unbiased). Then sets `self.fitted_` attribute to `True`
         """
-        raise NotImplementedError()
-
+        if self.biased_:  # ddof set to 0 - MLE of variance which is biased
+            self.var_ = np.var(X)
+        else:  # ddof set to 1 - unbiased estimator of var
+            self.var_ = np.var(X, ddof=1)
+        self.mu_ = np.mean(X)
         self.fitted_ = True
         return self
 
@@ -76,7 +80,22 @@ class UnivariateGaussian:
         """
         if not self.fitted_:
             raise ValueError("Estimator must first be fitted before calling `pdf` function")
-        raise NotImplementedError()
+        res = X.copy()
+        cnt = 0
+        for sample in X:
+            res[cnt] = self.__calc_gauss(sample, self.var_, self.mu_)
+            cnt += 1
+
+        return res
+
+    @staticmethod
+    def __calc_gauss(x_i, variance, mu):
+
+        sd = np.sqrt(variance)
+        a = 1 / np.sqrt(2 * np.pi * variance)
+        b = (((x_i - mu) / sd) ** 2)
+        c = np.exp(-0.5 * b)
+        return a * c
 
     @staticmethod
     def log_likelihood(mu: float, sigma: float, X: np.ndarray) -> float:
@@ -97,13 +116,18 @@ class UnivariateGaussian:
         log_likelihood: float
             log-likelihood calculated
         """
-        raise NotImplementedError()
+        var = sigma * sigma
+        res = 0
+        for x_i in X:
+            res += np.log(UnivariateGaussian.__calc_gauss(x_i, var, mu))
+        return res
 
 
 class MultivariateGaussian:
     """
     Class for multivariate Gaussian Distribution Estimator
     """
+
     def __init__(self):
         """
         Initialize an instance of multivariate Gaussian estimator
