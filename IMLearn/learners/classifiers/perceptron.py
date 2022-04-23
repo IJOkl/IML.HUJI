@@ -31,6 +31,7 @@ class Perceptron(BaseEstimator):
             A callable to be called after each update of the model while fitting to given data
             Callable function should receive as input a Perceptron instance, current sample and current response
     """
+
     def __init__(self,
                  include_intercept: bool = True,
                  max_iter: int = 1000,
@@ -73,7 +74,21 @@ class Perceptron(BaseEstimator):
         -----
         Fits model with or without an intercept depending on value of `self.fit_intercept_`
         """
-        raise NotImplementedError()
+        self.fitted_ = True
+        if self.include_intercept_:
+            X = self._handle_intercept(X)
+        n_samples, n_features = X.shape
+        self.coefs_ = np.zeros(n_features)
+        for t in range(self.max_iter_):
+            misclassified_flag = False
+            res = y * (X @ self.coefs_)
+            misclassified_flag = np.min(res) <= 0
+            if misclassified_flag:
+                idx = np.where(res <= 0)[0][0]
+                self.coefs_ += y[idx] * X[idx]
+                self.callback_(self, X[idx], y[idx])
+            else:
+                return
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """
@@ -89,7 +104,11 @@ class Perceptron(BaseEstimator):
         responses : ndarray of shape (n_samples, )
             Predicted responses of given samples
         """
-        raise NotImplementedError()
+        if self.include_intercept_:
+            X = self._handle_intercept(X)
+        res = np.sign(X @ self.coefs_)
+        res = np.where(res == 0, res ^ 1, res)
+        return res
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
@@ -109,4 +128,10 @@ class Perceptron(BaseEstimator):
             Performance under missclassification loss function
         """
         from ...metrics import misclassification_error
-        raise NotImplementedError()
+        if self.include_intercept_:
+            X = self._handle_intercept(X)
+        return misclassification_error(y, self.predict(X))
+
+    def _handle_intercept(self, X):
+        c = X.shape[0]
+        return np.c_[np.ones(c), X]

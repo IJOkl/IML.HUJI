@@ -38,7 +38,7 @@ def run_perceptron():
     """
     for n, f in [("Linearly Separable", "linearly_separable.npy"), ("Linearly Inseparable", "linearly_inseparable.npy")]:
         # Load dataset
-        raise NotImplementedError()
+        X,y = load_dataset(f)
 
         # Fit Perceptron and record loss in each fit iteration
         losses = []
