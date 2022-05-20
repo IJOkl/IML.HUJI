@@ -25,8 +25,10 @@ def load_dataset(filename: str) -> Tuple[np.ndarray, np.ndarray]:
         Class vector specifying for each sample its class
 
     """
-    data = np.load(filename)
-    return data[:, :2], data[:, 2].astype(int)
+
+    data = np.load(f"..//datasets//{filename}")
+    X, y = data[:, [0, 1]], data[:, 2]
+    return X, y
 
 
 def run_perceptron():
@@ -36,16 +38,22 @@ def run_perceptron():
     Create a line plot that shows the perceptron algorithm's training loss values (y-axis)
     as a function of the training iterations (x-axis).
     """
-    for n, f in [("Linearly Separable", "linearly_separable.npy"), ("Linearly Inseparable", "linearly_inseparable.npy")]:
+    for n, f in [("Linearly Separable", "linearly_separable.npy"),
+                 ("Linearly Inseparable", "linearly_inseparable.npy")]:
         # Load dataset
-        X,y = load_dataset(f)
+        X, y = load_dataset(f)
 
         # Fit Perceptron and record loss in each fit iteration
         losses = []
-        raise NotImplementedError()
+        percy = Perceptron(callback=lambda l: losses.append(l.loss(X, y)))
+        percy.fit(X, y)
+        fig = px.line(x=range(len(losses)),
+                      y=losses,
+                      title=f'Perceptron algorithm training loss values as a function of the training iterations: {n}',
+                      labels=dict(x="Iterations", y="Loss"))
+        fig.show()
 
         # Plot figure of loss as function of fitting iteration
-        raise NotImplementedError()
 
 
 def get_ellipse(mu: np.ndarray, cov: np.ndarray):

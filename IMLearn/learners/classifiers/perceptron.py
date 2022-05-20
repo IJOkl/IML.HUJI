@@ -80,15 +80,14 @@ class Perceptron(BaseEstimator):
         n_samples, n_features = X.shape
         self.coefs_ = np.zeros(n_features)
         for t in range(self.max_iter_):
-            misclassified_flag = False
             res = y * (X @ self.coefs_)
-            misclassified_flag = np.min(res) <= 0
-            if misclassified_flag:
-                idx = np.where(res <= 0)[0][0]
-                self.coefs_ += y[idx] * X[idx]
-                self.callback_(self, X[idx], y[idx])
+            for i in range(n_samples):
+                if res[i] <= 0:
+                    self.coefs_ += y[i] * X[i]
+                    self.callback_(self)
+                    break
             else:
-                return
+                break
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """
@@ -104,10 +103,10 @@ class Perceptron(BaseEstimator):
         responses : ndarray of shape (n_samples, )
             Predicted responses of given samples
         """
-        if self.include_intercept_:
-            X = self._handle_intercept(X)
+        # if self.include_intercept_:
+        #     X = self._handle_intercept(X)
         res = np.sign(X @ self.coefs_)
-        res = np.where(res == 0, res ^ 1, res)
+        res = np.where(res > 0, 1, -1)
         return res
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
