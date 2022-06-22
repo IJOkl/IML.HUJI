@@ -50,11 +50,11 @@ class LinearRegression(BaseEstimator):
         -----
         Fits model with or without an intercept depending on value of `self.include_intercept_`
         """
-        samples_num = X.shape[0]
         if self.include_intercept_:
-            intercept = np.ones(samples_num)
-            np.insert(X, 0, intercept)
-        self.coefs_ = pinv(X) @ y  # X pseudo inverse mult by y gives us w hat
+            with_int = np.insert(X, 0, 1, axis=1)
+            self.coefs_ = pinv(with_int) @ y
+        else:
+            self.coefs_ = pinv(X) @ y
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """
@@ -70,12 +70,10 @@ class LinearRegression(BaseEstimator):
         responses : ndarray of shape (n_samples, )
             Predicted responses of given samples
         """
-        samples_num = X.shape[0]
         if self.include_intercept_:
-            intercept = np.ones(samples_num)
-            np.insert(X, 0, intercept)
+            with_int = np.insert(X, 0, 1, axis=1)
+            return with_int @ self.coefs_
         return X @ self.coefs_
-
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
         Evaluate performance under MSE loss function

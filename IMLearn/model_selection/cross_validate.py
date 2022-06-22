@@ -37,18 +37,16 @@ def cross_validate(estimator: BaseEstimator, X: np.ndarray, y: np.ndarray,
     validation_score: float
         Average validation score over folds
     """
-    train_scores = np.zeros(cv)
-    validation_scores = np.zeros(cv)
-    folds = np.remainder(np.arange(X.shape[0]),cv)
-    for k in range(cv):
-        exclude = k != folds
-        train_X, train_y = X[exclude], y[exclude]
-        test_X ,test_y = X[~exclude], y[~exclude]
-        estimator.fit(train_X,train_y)
-        validation_scores[k] = scoring(test_y,estimator.predict(test_X),None)
-        train_scores[k] = scoring(train_y,estimator.predict(train_X),None)
-    train_score = np.mean(train_scores)
-    validation_score = np.mean(validation_scores)
-    return train_score,validation_score
+    training_errors = np.zeros(cv)
+    validation_errors = np.zeros(cv)
+    x_folds, y_folds = np.array_split(X, cv), np.array_split(y, cv)
+    for i in range(cv):
+        i_x_fold = np.concatenate(x_folds[:i] + x_folds[i+1:])
+        i_y_fold = np.concatenate(y_folds[:i] + y_folds[i+1:])
+        estimator.fit(i_x_fold, i_y_fold)
+        training_errors[i] = scoring(i_y_fold,estimator.predict(i_x_fold))
+        validation_errors[i] = scoring(y_folds[i],estimator.predict(x_folds[i]))
+    t_err ,v_err = training_errors.mean(),validation_errors.mean()
+    return t_err, v_err
 
 
