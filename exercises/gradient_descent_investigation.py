@@ -81,11 +81,12 @@ def get_gd_state_recorder_callback() -> Tuple[Callable[[], None], List[np.ndarra
     """
     values, weights = [], []
 
-    def callback(**kwargs):
+    def call_back(model, **kwargs):
         values.append(kwargs["val"])
         weights.append(kwargs["weights"])
+        return
 
-    return callback, values, weights
+    return call_back, values, weights
 
 
 def compare_fixed_learning_rates(init: np.ndarray = np.array([np.sqrt(2), np.e / 3]),
@@ -237,4 +238,4 @@ if __name__ == '__main__':
     np.random.seed(0)
     # compare_fixed_learning_rates()
     # compare_exponential_decay_rates()
-    fit_logistic_regression()
+    # fit_logistic_regression()

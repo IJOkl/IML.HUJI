@@ -130,7 +130,7 @@ class GradientDescent:
             val = f.compute_output(X=X, y=y)
 
 
-            self.callback_(self,
+            self.callback_(solver = self,
                            weights=f.weights,
                            val=f.compute_output(X=X, y=y),
                            grad=f.compute_jacobian(X=X, y=y),
