@@ -153,8 +153,7 @@ class LogisticModule(BaseModule):
         output: ndarray of shape (n_features,)
             Derivative of function with respect to self.weights at point self.weights
         """
-        x_w = np.dot(X, self.weights)
-        return -np.mean(X * (y - (np.exp(x_w) / (1 + np.exp(x_w))))[:, None], axis=0)
+        return (1 / y.size) * X.T @ ((1 / (1 + np.exp(-X @ self.weights)))-y)
 
 
 class RegularizedModule(BaseModule):
@@ -196,7 +195,7 @@ class RegularizedModule(BaseModule):
         self.include_intercept_ = include_intercept
 
         if weights is not None:
-            self.weights(weights)
+            self.weights = weights
 
     def compute_output(self, **kwargs) -> np.ndarray:
         """
@@ -243,8 +242,7 @@ class RegularizedModule(BaseModule):
         -------
         weights: ndarray of shape (n_in, n_out)
         """
-        return self.fidelity_module_.weights
-
+        return self.weights_
     @weights.setter
     def weights(self, weights: np.ndarray) -> None:
         """
@@ -258,8 +256,10 @@ class RegularizedModule(BaseModule):
         weights: ndarray of shape (n_in, n_out)
             Weights to set for module
         """
-        self.fidelity_module_.weights = weights
+        self.weights_ = weights
+
+        self.regularization_module_.weights = weights.copy()
         if self.include_intercept_:
-            self.regularization_module_.weights = weights[1:]
-        else:
-            self.regularization_module_.weights = weights
+            self.regularization_module_.weights[0] = 0
+
+        self.fidelity_module_.weights = weights.copy()
