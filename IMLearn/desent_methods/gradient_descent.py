@@ -130,13 +130,14 @@ class GradientDescent:
             val = f.compute_output(X=X, y=y)
 
 
-            self.callback_(solver=self,
+            self.callback_(self,
                            weights=f.weights,
-                           val=val,
+                           val=f.compute_output(X=X, y=y),
                            grad=f.compute_jacobian(X=X, y=y),
                            t=t,
-                           eta=lr,
+                           eta=self.learning_rate_.lr_step(t=t),
                            delta=delta)
+
             if self.out_type_ == OUTPUT_VECTOR_TYPE[0]: # last
                 double_use[0] = f.weights
             if self.out_type_ == OUTPUT_VECTOR_TYPE[1]: #best
